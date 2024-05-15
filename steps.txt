@@ -1,1 +1,43 @@
-j
+
+
+
+python3.10 -m venv ryu1
+
+source ryu1/bin/activate
+
+
+sudo apt-get install mininet
+
+
+pip install ryu
+
+sudo apt update
+sudo apt install python3-pip
+sudo apt install -y ryu
+
+
+sudo mn --topo single,3 --mac --controller remote
+
+service openvswitch-switch start
+
+
+
+
+V2
+
+python3.10 -m venv ryu1
+
+source ryu1/bin/activate
+
+
+sudo apt-get install mininet
+
+pip install mininet
+
+pip install pox
+
++ making my_network.py with code
+
+Installing pox....
+git clone https://github.com/noxrepo/pox.git
+cd pox
