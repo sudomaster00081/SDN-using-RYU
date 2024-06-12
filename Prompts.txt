@@ -1,0 +1,4 @@
+act as an expert in computer networks and python assist me.
+
+i want to make the program into two, as of now the program trains the ml model each time it executes. i want first cde to train and save the ml model locally, and on the second program to use this saved model for prediction
+
