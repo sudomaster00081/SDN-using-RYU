@@ -6,6 +6,7 @@ import switch
 from datetime import datetime
 import pandas as pd
 import pickle
+from datetime import datetime
 
 class SimpleMonitor13(switch.SimpleSwitch13):
     def __init__(self, *args, **kwargs):
@@ -33,7 +34,7 @@ class SimpleMonitor13(switch.SimpleSwitch13):
         while True:
             for dp in self.datapaths.values():
                 self._request_stats(dp)
-            hub.sleep(10)
+            hub.sleep(1)
 
             self.flow_predict()
 
@@ -116,7 +117,11 @@ class SimpleMonitor13(switch.SimpleSwitch13):
             X_predict_flow = X_predict_flow.astype('float64')
 
             y_flow_pred = self.flow_model.predict(X_predict_flow)
-
+            
+            # if not y_flow_pred.any():
+            #     print("No traffic detected")
+            #     return
+        
             legitimate_trafic = 0
             ddos_trafic = 0
 
@@ -127,6 +132,12 @@ class SimpleMonitor13(switch.SimpleSwitch13):
                     ddos_trafic += 1
                     victim = int(predict_flow_dataset.iloc[i, 5]) % 20
 
+            # Get current date and time
+            current_date_time = datetime.now()
+
+            # Convert to string
+            date_time_str = current_date_time.strftime("%Y-%m-%d %H:%M:%S")
+            print(date_time_str)
             self.logger.info("------------------------------------------------------------------------------")
             if (legitimate_trafic / len(y_flow_pred) * 100) > 80:
                 self.logger.info("legitimate trafic ...")
@@ -137,7 +148,7 @@ class SimpleMonitor13(switch.SimpleSwitch13):
             self.logger.info("------------------------------------------------------------------------------")
 
             file0 = open("PredictFlowStatsfile.csv", "w")
-            file0.write('timestamp,datapath_id,flow_id,ip_src,tp_src,ip_dst,tp_dst,ip_proto,icmp_code,icmp_type,flow_duration_sec,flow_duration_nsec,idle_timeout,hard_timeout,flags,packet_count,byte_count,packet_count_per_second,packet_count_per_nsecond,byte_count_per_second,byte_count_per_nsecond\n')
+            # file0.write('timestamp,datapath_id,flow_id,ip_src,tp_src,ip_dst,tp_dst,ip_proto,icmp_code,icmp_type,flow_duration_sec,flow_duration_nsec,idle_timeout,hard_timeout,flags,packet_count,byte_count,packet_count_per_second,packet_count_per_nsecond,byte_count_per_second,byte_count_per_nsecond\n')
             file0.close()
 
         except:
