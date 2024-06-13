@@ -2,3 +2,5 @@ __pycache__
 
 PredictFlowStatsfile.csv
 FlowStatsfile.csv
+# PredictFlowStatsfile.csv
+traffic_data.txt
