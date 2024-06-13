@@ -19,13 +19,17 @@ class SimpleMonitor13(switch.SimpleSwitch13):
         super(SimpleMonitor13, self).__init__(*args, **kwargs)
         self.datapaths = {}
         self.monitor_thread = hub.spawn(self._monitor)
-        self.display_thread = hub.spawn(self._display_traffic)
         self.flow_model = self._load_model('flow_model.pkl')
         self.logger = logging.getLogger('SimpleMonitor13')
         self.flow_stats_file = "PredictFlowStatsfile.csv"
+        self.traffic_data_file = "traffic_data.txt"
         self._init_flow_stats_file()
-        self.traffic_data = {}  # To store traffic data for display
+        self.traffic_data = {}
+        self._start_display_process()
 
+    def _start_display_process(self):
+        import subprocess
+        subprocess.Popen(["python3", "traffic_display.py"])
 
     def _display_traffic(self):
         while True:
@@ -95,12 +99,19 @@ class SimpleMonitor13(switch.SimpleSwitch13):
         body = ev.msg.body
         with open(self.flow_stats_file, "a") as file:
             for stat in sorted([flow for flow in body if flow.priority == 1], 
-                            key=lambda flow: (flow.match['eth_type'], flow.match['ipv4_src'], flow.match['ipv4_dst'], flow.match['ip_proto'])):
+                               key=lambda flow: (flow.match['eth_type'], flow.match['ipv4_src'], flow.match['ipv4_dst'], flow.match['ip_proto'])):
                 ip_src = stat.match['ipv4_src']
                 ip_dst = stat.match['ipv4_dst']
                 self.traffic_data[(ip_src, ip_dst)] = self.traffic_data.get((ip_src, ip_dst), 0) + 1
                 self._write_flow_stat(file, stat, ev.msg.datapath.id, timestamp)
+        self._write_traffic_data()
 
+    
+    def _write_traffic_data(self):
+        with open(self.traffic_data_file, "w") as file:
+            for (ip_src, ip_dst), count in self.traffic_data.items():
+                file.write(f"{ip_src} -> {ip_dst}: {count} packets\n")
+        self.traffic_data.clear()
 
     def _write_flow_stat(self, file, stat, datapath_id, timestamp):
         ip_src, ip_dst, ip_proto = stat.match['ipv4_src'], stat.match['ipv4_dst'], stat.match['ip_proto']
