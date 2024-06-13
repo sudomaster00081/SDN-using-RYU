@@ -25,7 +25,7 @@ class SimpleMonitor13(switch.SimpleSwitch13):
         self.traffic_data_file = "traffic_data.txt"
         self._init_flow_stats_file()
         self.traffic_data = {}
-        self._start_display_process()
+        # self._start_display_process()
 
     def _start_display_process(self):
         import subprocess
@@ -82,7 +82,7 @@ class SimpleMonitor13(switch.SimpleSwitch13):
         while True:
             for dp in self.datapaths.values():
                 self._request_stats(dp)
-            hub.sleep(1)
+            hub.sleep(2)
             self.flow_predict()
             # Add invocation of real-time traffic monitor here
             # self._realtime_traffic_monitor()
