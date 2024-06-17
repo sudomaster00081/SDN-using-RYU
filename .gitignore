@@ -2,3 +2,9 @@ ryu1/
 .pytest_cache
 pox/
 ryu/
+__pycache__
+
+PredictFlowStatsfile.csv
+FlowStatsfile.csv
+# PredictFlowStatsfile.csv
+traffic_data.txt
