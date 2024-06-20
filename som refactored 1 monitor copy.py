@@ -11,7 +11,8 @@ import logging
 import os
 import subprocess
 import csv
-
+from collections import Counter
+import math
 
 FLOW_STATS_FILE = "PredictFlowStatsfile.csv"
 TRAFFIC_DATA_FILE = "traffic_data.txt"
@@ -179,6 +180,31 @@ class SimpleMonitor13(switch.SimpleSwitch13):
         self._init_flow_stats_file()
         self.traffic_data = {}
         # self._start_display_process()
+        
+    def calculate_entropy(self, data_list):
+        count = Counter(data_list)
+        probabilities = [count[key] / len(data_list) for key in count.keys()]
+        entropy = -sum([p * math.log2(p) for p in probabilities])
+        return entropy
+
+    def calculate_and_print_statistics(self, dataset):
+        try:
+            dataset = dataset
+            
+            src_ip_entropy = self.calculate_entropy(dataset['ip_src'])
+            src_port_entropy = self.calculate_entropy(dataset['tp_src'])
+            dst_port_entropy = self.calculate_entropy(dataset['tp_dst'])
+            protocol_entropy = self.calculate_entropy(dataset['ip_proto'])
+            total_packets = dataset['packet_count'].sum()
+            
+            # print(f"Entropy of source IP address (etpSrcIP): {src_ip_entropy}")
+            # print(f"Entropy of source port (etpSrcP): {src_port_entropy}")
+            # print(f"Entropy of destination port (etpDstP): {dst_port_entropy}")
+            # print(f"Entropy of packet protocol (etpProtocol): {protocol_entropy}")
+            # print(f"Total number of packets (totalPacket): {total_packets}")
+            return (src_ip_entropy, src_port_entropy, dst_port_entropy, protocol_entropy, total_packets)
+        except Exception as e:
+            self.logger.error(f"Error calculating statistics: {e}")
 
     def _start_display_process(self):
         import subprocess
@@ -302,12 +328,17 @@ class SimpleMonitor13(switch.SimpleSwitch13):
             predict_flow_dataset = pd.read_csv(self.flow_stats_file)
             predict_flow_dataset = self._sanitize_dataset(predict_flow_dataset)
             X_predict_flow = predict_flow_dataset.values.astype('float64')
-
+            # Call the new method to calculate and print statistics
+            
             y_flow_pred = self.flow_model.predict(X_predict_flow)
             legitimate_traffic, ddos_traffic, victim = self._analyze_predictions(y_flow_pred, predict_flow_dataset)
             self._log_prediction_results(legitimate_traffic, ddos_traffic, victim, len(y_flow_pred))
             self._init_flow_stats_file()
-
+            # print(predict_flow_dataset)
+            #Entropy values
+            src_ip_entropy, src_port_entropy, dst_port_entropy, protocol_entropy, total_packets = self.calculate_and_print_statistics(predict_flow_dataset)
+            
+            
         except Exception as e:
             print("No Traffic detected!!!")
             # self.logger.error(f"Error in flow prediction: {e}")
