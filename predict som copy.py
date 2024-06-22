@@ -21,8 +21,11 @@ def predict_ddos(input_sample, d_threshold, sigma):
     return 1 if is_attack else 0
 
 # Function to encapsulate prediction process
-def make_prediction(input_value, d_threshold, sigma):
-    prediction = predict_ddos(input_value, d_threshold, sigma)
+def make_prediction(input_value):
+    preprocessed_input = preprocess_input(input_value)
+    d_threshold = 0.1  # Predefined distance threshold
+    sigma = 0.2  # Probability threshold
+    prediction = predict_ddos(preprocessed_input, d_threshold, sigma)
     return prediction
 
 def normalize_with_tanh_estimator_single(data_row, mean_std_dict):
@@ -35,27 +38,28 @@ def normalize_with_tanh_estimator_single(data_row, mean_std_dict):
 # Keep excluded columns as they are
     return normalized_row
 
-
 def preprocess_input(input_value):
     # Implement any necessary preprocessing steps here
-    mean_std_dict = [(9.437737497582425, 4.234022502390504), (1.0014830681710152, 0.4148545486662927), (0.783486142367573, 0.5773500479812647), (0.38101732217098544, 0.17530338230820758), (111228.13152610442, 75499.55601941863)]
+    mean_std_dict = [(8.263881658687838, 4.671149926162893), (0.9246188369475715, 0.5443941383426818), (0.7003273029028211, 0.7272171514281917), (0.3280379809243417, 0.18777105312169787), (455704.77437325905, 391359.48898741446)]
     normalized = normalize_with_tanh_estimator_single(input_value, mean_std_dict)
-    print("Normalized", normalized)
-
     return normalized
 
 # Example usage
-# input_value = [0.4400012 , 0.41588544, 0.45199712, 0.41352742, 0.44222034]
-# input_value = [0.43795354, 0.45224061, 0.46415426, 0.47427353, 0.44225198]
-input_value = [2.763893 , 1.445125 , 3.094029, 0.999693, 582]
+# input_value = [0.4400012 , 0.41588544, 0.45199712, 0.41352742, 0.44222034] # With 1
+# input_value = [0.43795354, 0.45224061, 0.46415426, 0.47427353, 0.44225198] # With 0
+# input_value = [2.536088222091784,0.0686003391241183,0.0465273995620474,0.0557031009586454,1724] # with 0
+input_value = [11.957352256041853,1.3045211901472402,0.7669488700322542,0.3644649601632569,837313] # with 1
 print("input value =",input_value)
-preprocessed_input = preprocess_input(input_value)
-print("Preprocessed input value:", preprocessed_input)
 
-d_threshold = 0.1  # Predefined distance threshold
-sigma = 0.2  # Probability threshold
+# preprocessed_input = input_value
+# expected_value = [0.438995 , 0.422020 , 0.455169   ,  0.427986  ,   0.442258 ]
+# print("Expected value:", expected_value)
+# print("Preprocessed input value:", preprocessed_input)
+
+
+
 
 # Make a prediction using the encapsulated function
-prediction = make_prediction(preprocessed_input, d_threshold, sigma)
+prediction = make_prediction(input_value)
 
 print("Predicted label for the input value:", prediction)
