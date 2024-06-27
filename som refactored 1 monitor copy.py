@@ -415,13 +415,7 @@ class SimpleMonitor13(switch.SimpleSwitch13):
     def write_to_som_data(self, input_value, label):
         input_value.append(label)
         with open(self.som_data_file, 'a') as file:
-            file.write(f"\n{input_value[0]},
-                       {input_value[1]},
-                       {input_value[2]},
-                       {input_value[3]},
-                       {input_value[4]},
-                       {input_value[5]}"
-                       )
+            file.write(f"\n{input_value[0]},{input_value[1]},{input_value[2]},{input_value[3]},{input_value[4]},{input_value[5]}")
             print(f"Saved as {label}")
             
     
