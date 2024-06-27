@@ -3,8 +3,9 @@ ryu1/
 pox/
 ryu/
 __pycache__
-
+*.csv
 PredictFlowStatsfile.csv
 FlowStatsfile.csv
 # PredictFlowStatsfile.csv
 traffic_data.txt
+*.pcap

@@ -55,7 +55,7 @@ def make_prediction(input_value):
 
 def normalize_with_tanh_estimator_single(data_row, mean_std_dict):
     normalized_row = []
-    print("data_row", data_row )
+    # print("data_row", data_row )
     for i, val in enumerate(data_row):
         mu, sigma = mean_std_dict[i]
         normalized_val = 0.5 * (np.tanh(0.1 * ((val - mu) / sigma)) + 1)
@@ -220,11 +220,15 @@ class TrafficPrediction:
         self.logger.info(f"------------------------------------------------------------------------------")
         self.logger.info(f"{date_time_str}")
         if (legitimate_traffic / total_traffic * 100) > 80:
-            self.logger.info("Legitimate traffic...")
+            self.logger.info("Good traffic...")
+            self.logger.info("------------------------------------------------------------------------------")
+
+            
         else:
-            self.logger.info("DDoS traffic detected...")
-            self.logger.info(f"Victim is host: h{victim}")
-        self.logger.info("------------------------------------------------------------------------------")
+            self.logger.info("DDoS traffic ...")
+            # self.logger.info(f"Victim is host: h{victim}")
+            self.logger.info(f"*************************************************************************")
+
 
 class SimpleMonitor13(switch.SimpleSwitch13):
     def __init__(self, *args, **kwargs):
@@ -397,10 +401,10 @@ class SimpleMonitor13(switch.SimpleSwitch13):
             src_ip_entropy, src_port_entropy, dst_port_entropy, protocol_entropy, total_packets = self.calculate_and_print_statistics(predict_flow_dataset)
             input_value_for_som = [src_ip_entropy, src_port_entropy, dst_port_entropy, protocol_entropy, total_packets]
             made_som_prediction = make_prediction(input_value_for_som)
-            if made_som_prediction == 0:
-                print("SOM predicted as Benign")
-            else:
-                print("SOM predicted as ATTACK!!!")
+            # if made_som_prediction == 0:
+            #     print("SOM predicted as Benign")
+            # else:
+            #     print("SOM predicted as ATTACK!!!")
             
         except Exception as e:
             print("No Traffic detected!!!")
@@ -426,16 +430,31 @@ class SimpleMonitor13(switch.SimpleSwitch13):
 
         return legitimate_traffic, ddos_traffic, victim
 
+    # def _log_prediction_results(self, legitimate_traffic, ddos_traffic, victim, total_traffic):
+    #     date_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    #     # self.logger.info(f"------------------------------------------------------------------------------")
+    #     self.logger.info(f"{date_time_str}")
+    #     if (legitimate_traffic / total_traffic * 100) > 80:
+    #         self.logger.info("Legitimate traffic...")
+    #     else:
+    #         self.logger.info("DDoS traffic detected...")
+    #         self.logger.info(f"Victim is host: h{victim}")
+    #     # self.logger.info("------------------------------------------------------------------------------")
+    
+    
     def _log_prediction_results(self, legitimate_traffic, ddos_traffic, victim, total_traffic):
         date_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        # self.logger.info(f"------------------------------------------------------------------------------")
+        self.logger.info(f"------------------------------------------------------------------------------")
         self.logger.info(f"{date_time_str}")
         if (legitimate_traffic / total_traffic * 100) > 80:
-            self.logger.info("Legitimate traffic...")
+            self.logger.info("Good traffic...(RF)")
+            self.logger.info("------------------------------------------------------------------------------")
+
+            
         else:
-            self.logger.info("DDoS traffic detected...")
-            self.logger.info(f"Victim is host: h{victim}")
-        # self.logger.info("------------------------------------------------------------------------------")
+            self.logger.info("DDoS traffic ...(RF)")
+            # self.logger.info(f"Victim is host: h{victim}")
+            self.logger.info(f"*************************************************************************")
 
 
 

