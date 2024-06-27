@@ -241,6 +241,7 @@ class SimpleMonitor13(switch.SimpleSwitch13):
         self.traffic_data_file = "traffic_data.txt"
         self._init_flow_stats_file()
         self.traffic_data = {}
+        self.som_data_file = 'som_data.csv'
         # self._start_display_process()
         
     def calculate_entropy(self, data_list):
@@ -394,12 +395,13 @@ class SimpleMonitor13(switch.SimpleSwitch13):
             
             y_flow_pred = self.flow_model.predict(X_predict_flow)
             legitimate_traffic, ddos_traffic, victim = self._analyze_predictions(y_flow_pred, predict_flow_dataset)
-            self._log_prediction_results(legitimate_traffic, ddos_traffic, victim, len(y_flow_pred))
+            label = self._log_prediction_results(legitimate_traffic, ddos_traffic, victim, len(y_flow_pred))
             self._init_flow_stats_file()
             # print(predict_flow_dataset)
             #Entropy values
             src_ip_entropy, src_port_entropy, dst_port_entropy, protocol_entropy, total_packets = self.calculate_and_print_statistics(predict_flow_dataset)
             input_value_for_som = [src_ip_entropy, src_port_entropy, dst_port_entropy, protocol_entropy, total_packets]
+            self.write_to_som_data(input_value_for_som, label)
             made_som_prediction = make_prediction(input_value_for_som)
             # if made_som_prediction == 0:
             #     print("SOM predicted as Benign")
@@ -410,6 +412,20 @@ class SimpleMonitor13(switch.SimpleSwitch13):
             print("No Traffic detected!!!")
             # self.logger.error(f"Error in flow prediction: {e}")
 
+    def write_to_som_data(self, input_value, label):
+        input_value.append(label)
+        with open(self.som_data_file, 'a') as file:
+            file.write(f"\n{input_value[0]},
+                       {input_value[1]},
+                       {input_value[2]},
+                       {input_value[3]},
+                       {input_value[4]},
+                       {input_value[5]}"
+                       )
+            print(f"Saved as {label}")
+            
+    
+    
     def _sanitize_dataset(self, dataset):
         dataset.iloc[:, 2] = dataset.iloc[:, 2].str.replace('.', '')
         dataset.iloc[:, 3] = dataset.iloc[:, 3].str.replace('.', '')
@@ -449,12 +465,13 @@ class SimpleMonitor13(switch.SimpleSwitch13):
         if (legitimate_traffic / total_traffic * 100) > 80:
             self.logger.info("Good traffic...(RF)")
             self.logger.info("------------------------------------------------------------------------------")
-
+            return 0
             
         else:
             self.logger.info("DDoS traffic ...(RF)")
             # self.logger.info(f"Victim is host: h{victim}")
             self.logger.info(f"*************************************************************************")
+            return 1
 
 
 
