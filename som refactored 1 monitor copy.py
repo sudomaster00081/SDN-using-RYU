@@ -401,7 +401,7 @@ class SimpleMonitor13(switch.SimpleSwitch13):
             #Entropy values
             src_ip_entropy, src_port_entropy, dst_port_entropy, protocol_entropy, total_packets = self.calculate_and_print_statistics(predict_flow_dataset)
             input_value_for_som = [src_ip_entropy, src_port_entropy, dst_port_entropy, protocol_entropy, total_packets]
-            self.write_to_som_data(input_value_for_som, label)
+            # self.write_to_som_data(input_value_for_som, label)
             made_som_prediction = make_prediction(input_value_for_som)
             # if made_som_prediction == 0:
             #     print("SOM predicted as Benign")
@@ -409,7 +409,7 @@ class SimpleMonitor13(switch.SimpleSwitch13):
             #     print("SOM predicted as ATTACK!!!")
             
         except Exception as e:
-            print("No Traffic detected!!!")
+            print(f"No Traffic detected!!!\n{e}\n")
             # self.logger.error(f"Error in flow prediction: {e}")
 
     def write_to_som_data(self, input_value, label):
