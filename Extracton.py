@@ -1,57 +1,89 @@
 import csv
-import math
-from collections import Counter
-from scapy.all import rdpcap
+from scapy.all import *
+import os
+from collections import defaultdict
 
-def calculate_entropy(data):
-    counter = Counter(data)
-    entropy = 0
-    total = sum(counter.values())
-    for count in counter.values():
-        p = count / total
-        entropy -= p * math.log2(p)
-    return entropy
-
-def extract_features(pcap_file, interval=5):
+def pcap_to_csv(pcap_file):
     packets = rdpcap(pcap_file)
-    features = []
-    maxlen = len(packets)
-    for i in range(0, maxlen, interval):
-        print(f"\rProcessing {i} of {maxlen}", end='', flush=True)
-        batch = packets[i:i+interval]
-        
-        src_ips = [pkt.src for pkt in batch if hasattr(pkt, 'src')]
-        src_ports = [pkt.sport for pkt in batch if hasattr(pkt, 'sport')]
-        dst_ports = [pkt.dport for pkt in batch if hasattr(pkt, 'dport')]
-        protocols = [pkt.proto for pkt in batch if hasattr(pkt, 'proto')]
-        
-        etp_src_ip = calculate_entropy(src_ips)
-        etp_src_p = calculate_entropy(src_ports)
-        etp_dst_p = calculate_entropy(dst_ports)
-        etp_protocol = calculate_entropy(protocols)
-        total_packet = len(batch)
-        
-        features.append([etp_src_ip, etp_src_p, etp_dst_p, etp_protocol, total_packet])
+    print("Converting PCAP to CSV...")
+    csv_file = os.path.splitext(pcap_file)[0] + '.csv'
     
-    return features
-
-def save_to_csv(features, output_file):
-    with open(output_file, 'w', newline='') as csvfile:
+    # Dictionary to store flow information
+    flows = defaultdict(lambda: {
+        'start_time': None, 'end_time': None, 'packet_count': 0, 'byte_count': 0,
+        'datapath_id': 'N/A', 'flags': set(), 'idle_timeout': 'N/A', 'hard_timeout': 'N/A'
+    })
+    
+    # Process packets to gather flow information
+    for packet in packets:
+        if IP in packet:
+            flow_id = (packet[IP].src, packet[IP].dst, packet[IP].proto, 
+                       packet[TCP].sport if TCP in packet else packet[UDP].sport if UDP in packet else 0,
+                       packet[TCP].dport if TCP in packet else packet[UDP].dport if UDP in packet else 0)
+            
+            flow = flows[flow_id]
+            flow['packet_count'] += 1
+            flow['byte_count'] += len(packet)
+            
+            if flow['start_time'] is None:
+                flow['start_time'] = packet.time
+            flow['end_time'] = packet.time
+    
+    with open(csv_file, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(['etpSrcIP', 'etpSrcP', 'etpDstP', 'etpProtocol', 'totalPacket'])
-        writer.writerows(features)
+        writer.writerow([
+            'timestamp', 'datapath_id', 'flow_id', 'ip_src', 'tp_src', 'ip_dst', 'tp_dst',
+            'ip_proto', 'icmp_code', 'icmp_type', 'flow_duration_sec', 'flow_duration_nsec',
+            'idle_timeout', 'hard_timeout', 'flags', 'packet_count', 'byte_count',
+            'packet_count_per_second', 'packet_count_per_nsecond', 'byte_count_per_second',
+            'byte_count_per_nsecond'
+        ])
+        
+        for flow_id, flow_data in flows.items():
+            ip_src, ip_dst, ip_proto, tp_src, tp_dst = flow_id
+            duration = flow_data['end_time'] - flow_data['start_time']
+            duration_sec = int(duration)
+            duration_nsec = int((duration - duration_sec) * 1e9)
+            
+            packet_count = flow_data['packet_count']
+            byte_count = flow_data['byte_count']
+            
+            writer.writerow([
+                flow_data['start_time'],
+                flow_data['datapath_id'],
+                ','.join(map(str, flow_id)),
+                ip_src,
+                tp_src,
+                ip_dst,
+                tp_dst,
+                ip_proto,
+                packet[ICMP].code if ICMP in packet else 'N/A',
+                packet[ICMP].type if ICMP in packet else 'N/A',
+                duration_sec,
+                duration_nsec,
+                flow_data['idle_timeout'],
+                flow_data['hard_timeout'],
+                ','.join(flow_data['flags']),
+                packet_count,
+                byte_count,
+                packet_count / duration if duration > 0 else 0,
+                packet_count / (duration * 1e9) if duration > 0 else 0,
+                byte_count / duration if duration > 0 else 0,
+                byte_count / (duration * 1e9) if duration > 0 else 0
+            ])
+    
+    print(f"Conversion complete. CSV file saved as: {csv_file}")
 
-# Main execution
 if __name__ == "__main__":
-    # pcap_file = "ddostrace.to-victim.20070804_134936.pcap"  # Replace with your PCAP file path
-    # output_file = "ddostrace.to-victim.20070804_134936.csv"
-    pcap_file = "ddostrace.to-victim.20070804_145436.pcap"
-    output_file = "ddostrace.to-victim.20070804_145436.csv"
+    import sys
     
-    print("Extracting features...")
-    features = extract_features(pcap_file)
+    # if len(sys.argv) != 2:
+    #     print("Usage: python script.py <pcap_file>")
+    #     sys.exit(1)
     
-    print("Saving features to CSV...")
-    save_to_csv(features, output_file)
-    
-    print(f"Features saved to {output_file}")
+    # pcap_file = sys.argv[1]
+    # if not pcap_file.endswith('.pcap'):
+    #     print("Error: Input file must be a .pcap file")
+    #     sys.exit(1)
+    pcap_file = "smlddostrace.to-victim.20070804_134936.pcap"
+    pcap_to_csv(pcap_file)
