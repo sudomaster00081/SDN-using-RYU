@@ -25,7 +25,7 @@ Getting RDDoS up and running is easier than teaching a cat to fetch. Just follow
 Now for the fun part! Here's how to unleash the magic of RDDoS:
 
 1. Open your terminal and navigate to the project directory.
-2. Execute `python rddos.py` and watch as it bravely defends against simulated DDoS attacks.
+2. Execute `<not complete 😁` and watch as it bravely defends against simulated DDoS attacks.
 3. Marvel at your newfound ability to keep your servers safe and sound.
 
 ---
