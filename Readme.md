@@ -96,7 +96,7 @@ Okay, serious talk time. This project is licensed under the MIT License. In plai
 
 ## Contact
 
-Got questions, feedback, or just want to chat about cybernetic warfare over a virtual coffee? Reach out to sudomaster00081 at [email@example.com](mailto:email@example.com). Let's make the internet a safer place together.
+Got questions, feedback, or just want to chat about cybernetic warfare over a virtual coffee? Reach out to sudomaster00081 at [email@example.com](mailto:sudomaster00081@gmail.com). Let's make the internet a safer place together.
 
 ---
 

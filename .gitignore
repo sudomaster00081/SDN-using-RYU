@@ -9,3 +9,4 @@ FlowStatsfile.csv
 # PredictFlowStatsfile.csv
 traffic_data.txt
 *.pcap
+*.parquet
